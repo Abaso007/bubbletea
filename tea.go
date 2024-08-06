@@ -181,6 +181,22 @@ func Quit() Msg {
 // Quit.
 type QuitMsg struct{}
 
+// Suspend is a special command that tells the Bubble Tea program to suspend.
+func Suspend() Msg {
+	return SuspendMsg{}
+}
+
+// SuspendMsg signals the program should suspend.
+// This usually happens when ctrl+z is pressed on common programs, but since
+// bubbletea puts the terminal in raw mode, we need to handle it in a
+// per-program basis.
+// You can send this message with Suspend.
+type SuspendMsg struct{}
+
+// ResumeMsg can be listen to to do something once a program is resumed back
+// from a suspend state.
+type ResumeMsg struct{}
+
 // NewProgram creates a new Program.
 func NewProgram(model Model, opts ...ProgramOption) *Program {
 	p := &Program{
@@ -327,6 +343,11 @@ func (p *Program) eventLoop(model Model, cmds chan Cmd) (Model, error) {
 			case QuitMsg:
 				return model, nil
 
+			case SuspendMsg:
+				if suspendSupported {
+					p.suspend()
+				}
+
 			case clearScreenMsg:
 				p.renderer.clearScreen()
 
@@ -401,6 +422,9 @@ func (p *Program) eventLoop(model Model, cmds chan Cmd) (Model, error) {
 
 			case setWindowTitleMsg:
 				p.SetWindowTitle(string(msg))
+
+			case windowSizeMsg:
+				go p.checkResize()
 			}
 
 			// Process internal messages for the renderer.
