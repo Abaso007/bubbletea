@@ -201,3 +201,38 @@ func SetWindowTitle(title string) Cmd {
 		return setWindowTitleMsg(title)
 	}
 }
+
+type windowSizeMsg struct{}
+
+// WindowSize is a command that queries the terminal for its current size. It
+// delivers the results to Update via a [WindowSizeMsg]. Keep in mind that
+// WindowSizeMsgs will automatically be delivered to Update when the [Program]
+// starts and when the window dimensions change so in many cases you will not
+// need to explicitly invoke this command.
+func WindowSize() Cmd {
+	return func() Msg {
+		return windowSizeMsg{}
+	}
+}
+
+// setEnhancedKeyboardMsg is a message to enable/disable enhanced keyboard
+// features.
+type setEnhancedKeyboardMsg bool
+
+// EnableEnhancedKeyboard is a command to enable enhanced keyboard features.
+// This unambiguously reports more key combinations than traditional terminal
+// keyboard sequences. This might also enable reporting of release key events
+// depending on the terminal emulator supporting it.
+//
+// This is equivalent to calling EnablieKittyKeyboard(3) and
+// EnableModifyOtherKeys(1).
+func EnableEnhancedKeyboard() Msg {
+	return setEnhancedKeyboardMsg(true)
+}
+
+// DisableEnhancedKeyboard is a command to disable enhanced keyboard features.
+//
+// This is equivalent to calling DisableKittyKeyboard() and DisableModifyOtherKeys().
+func DisableEnhancedKeyboard() Msg {
+	return setEnhancedKeyboardMsg(false)
+}
